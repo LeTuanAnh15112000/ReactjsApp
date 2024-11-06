@@ -1,17 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { FcPlus } from "react-icons/fc";
 import { toast } from "react-toastify";
 import { postCreateNewUser } from "../../../service/apiService";
+import _ from "lodash";
 
-function ModalCreateUser({show, setShow, fetchListUses}) {
+function ModalUpdateUser({ show, setShow, dataUpdate }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("USER");
   const [image, setImage] = useState("");
   const [previewImage, setPreviewImage] = useState("");
+
+  useEffect(() => {
+    if (_.isEmpty(!dataUpdate)) {
+      setEmail(dataUpdate.email);
+      setUsername(dataUpdate.username);
+      setRole(dataUpdate.role);
+      if(dataUpdate.image) {
+        setPreviewImage(`data:image/jpeg;base64,${dataUpdate.image}`);
+      }
+    }
+  }, [dataUpdate]);
 
   const handleClose = () => {
     setEmail("");
@@ -20,16 +32,16 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
     setRole("");
     setImage("");
     setPreviewImage("");
-    setShow(false)
+    setShow(false);
   };
 
   const handleUpload = (e) => {
-    if(e.target && e.target.files && e.target.files[0]) {
-      setPreviewImage(URL.createObjectURL(e.target.files[0]))
+    if (e.target && e.target.files && e.target.files[0]) {
+      setPreviewImage(URL.createObjectURL(e.target.files[0]));
       setImage(e.target.files[0]);
       e.target.value = null;
     } else {
-      setPreviewImage("")
+      setPreviewImage("");
     }
   };
 
@@ -43,29 +55,29 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
 
   const handelSubmitCreateUser = async () => {
     // validate
-    const isValidEmail = validateEmail(email)
-    if(!isValidEmail) {
-      toast.error("Invalid Email")
+    const isValidEmail = validateEmail(email);
+    if (!isValidEmail) {
+      toast.error("Invalid Email");
       return;
     }
 
-    if(!password) {
-      toast.error("Invalid Password")
+    if (!password) {
+      toast.error("Invalid Password");
       return;
     }
 
     //submit
-    let data = await postCreateNewUser(email, password, username, role, image)
-    if(data && data.EC === 0) {
+    let data = await postCreateNewUser(email, password, username, role, image);
+    if (data && data.EC === 0) {
       toast.success(data.EM);
       handleClose();
-      await fetchListUses();
+      await dataUpdate();
     }
 
-    if(data && data.EC !== 0) {
-      toast.error(data.EM)
+    if (data && data.EC !== 0) {
+      toast.error(data.EM);
     }
-  }
+  };
 
   return (
     <>
@@ -77,7 +89,7 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
         backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add new user</Modal.Title>
+          <Modal.Title>Update a user</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <form className="row g-3">
@@ -87,6 +99,7 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
                 type="email"
                 className="form-control"
                 value={email}
+                disabled
                 onChange={(e) => {
                   setEmail(e.target.value);
                 }}
@@ -98,6 +111,7 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
                 type="password"
                 className="form-control"
                 value={password}
+                disabled
                 onChange={(e) => {
                   setPassword(e.target.value);
                 }}
@@ -151,7 +165,12 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
-          <Button variant="primary" onClick={() => {handelSubmitCreateUser()}}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              handelSubmitCreateUser();
+            }}
+          >
             Save Changes
           </Button>
         </Modal.Footer>
@@ -160,4 +179,4 @@ function ModalCreateUser({show, setShow, fetchListUses}) {
   );
 }
 
-export default ModalCreateUser;
+export default ModalUpdateUser;

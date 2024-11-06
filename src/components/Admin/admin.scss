@@ -12,11 +12,9 @@
     padding-left: 30px;
     .admin-header {
       height: 40px;
-      border: 1px solid green;
-    }
-
-    .admin-main {
-      border: 1px solid red;
+      display: flex;
+      align-items: center;
+      margin-bottom: 50px;
     }
   }
 }
@@ -52,4 +50,9 @@
       color: #dee2ec;
     }
   }
+}
+
+.not-found-data {
+  text-align: center;
+  font-weight: 700;
 }
