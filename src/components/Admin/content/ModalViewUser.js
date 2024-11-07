@@ -1,24 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { FcPlus } from "react-icons/fc";
-import { toast } from "react-toastify";
-import { postCreateNewUser } from "../../../service/apiService";
+import _ from "lodash";
 
-function ModalCreateUser({
-  show,
-  setShow,
-  fetchListUses,
-  fetchListUsesWithPaginate,
-  currentPage,
-  setCurrentPage,
-}) {
+function ModalViewUser({ show, setShow, dataView}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("USER");
   const [image, setImage] = useState("");
   const [previewImage, setPreviewImage] = useState("");
+
+  useEffect(() => {
+    if (_.isEmpty(!dataView)) {
+      setEmail(dataView.email);
+      setPassword(dataView.password);
+      setUsername(dataView.username);
+      setRole(dataView.role);
+      if (dataView.image) {
+        setPreviewImage(`data:image/jpeg;base64,${dataView.image}`);
+      }
+    }
+  }, [dataView]);
 
   const handleClose = () => {
     setEmail("");
@@ -28,52 +32,6 @@ function ModalCreateUser({
     setImage("");
     setPreviewImage("");
     setShow(false);
-  };
-
-  const handleUpload = (e) => {
-    if (e.target && e.target.files && e.target.files[0]) {
-      setPreviewImage(URL.createObjectURL(e.target.files[0]));
-      setImage(e.target.files[0]);
-      e.target.value = null;
-    } else {
-      setPreviewImage("");
-    }
-  };
-
-  const validateEmail = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
-
-  const handelSubmitCreateUser = async () => {
-    // validate
-    const isValidEmail = validateEmail(email);
-    if (!isValidEmail) {
-      toast.error("Invalid Email");
-      return;
-    }
-
-    if (!password) {
-      toast.error("Invalid Password");
-      return;
-    }
-
-    //submit
-    let data = await postCreateNewUser(email, password, username, role, image);
-    if (data && data.EC === 0) {
-      toast.success(data.EM);
-      handleClose();
-      // await fetchListUses();
-      setCurrentPage(1);
-      await fetchListUsesWithPaginate(1);
-    }
-
-    if (data && data.EC !== 0) {
-      toast.error(data.EM);
-    }
   };
 
   return (
@@ -86,7 +44,7 @@ function ModalCreateUser({
         backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add new user</Modal.Title>
+          <Modal.Title>User</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <form className="row g-3">
@@ -95,10 +53,8 @@ function ModalCreateUser({
               <input
                 type="email"
                 className="form-control"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
+                value={email || ""}
+                disabled
               />
             </div>
             <div className="col-md-6">
@@ -106,10 +62,8 @@ function ModalCreateUser({
               <input
                 type="password"
                 className="form-control"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
+                value={password || ""}
+                disabled
               />
             </div>
             <div className="col-md-6">
@@ -117,19 +71,15 @@ function ModalCreateUser({
               <input
                 type="text"
                 className="form-control"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                }}
+                value={username || ""}
+                disabled
               />
             </div>
             <div className="col-md-4">
               <label className="form-label">Role</label>
               <select
                 className="form-select"
-                onChange={(e) => {
-                  setRole(e.target.value);
-                }}
+                disabled
                 value={role}
               >
                 <option value="USER">USER</option>
@@ -143,8 +93,8 @@ function ModalCreateUser({
               <input
                 type="file"
                 id="upload"
+                disabled
                 hidden
-                onChange={(e) => handleUpload(e)}
               />
             </div>
             <div className="col-md-12 img-preview">
@@ -160,18 +110,10 @@ function ModalCreateUser({
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              handelSubmitCreateUser();
-            }}
-          >
-            Save Changes
-          </Button>
         </Modal.Footer>
       </Modal>
     </>
   );
 }
 
-export default ModalCreateUser;
+export default ModalViewUser;

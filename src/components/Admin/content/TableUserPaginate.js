@@ -1,4 +1,22 @@
-const TableUser = ({ listUsers, handleClickBtnUpdate, handleClickBtnView, handleClickDelete }) => {
+import { useEffect, useState } from "react";
+import ReactPaginate from "react-paginate";
+
+const TableUserPaginate = ({
+  listUsers,
+  handleClickBtnUpdate,
+  handleClickBtnView,
+  handleClickDelete,
+  fetchListUsesWithPaginate,
+  pageCount,
+  currentPage,
+  setCurrentPage,
+}) => {
+  // const [pageCount, setPageCount] = useState(0);
+  const handlePageClick = (event) => {
+    setCurrentPage(+event.selected + 1);
+    fetchListUsesWithPaginate(+event.selected + 1);
+  };
+
   return (
     <>
       <h2
@@ -58,6 +76,29 @@ const TableUser = ({ listUsers, handleClickBtnUpdate, handleClickBtnView, handle
             })}
         </tbody>
       </table>
+      <div className="uers-paginate d-flex justify-content-center">
+        <ReactPaginate
+          nextLabel="Next >"
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={3}
+          marginPagesDisplayed={2}
+          pageCount={pageCount}
+          previousLabel="< Prev"
+          pageClassName="page-item"
+          pageLinkClassName="page-link"
+          previousClassName="page-item"
+          previousLinkClassName="page-link"
+          nextClassName="page-item"
+          nextLinkClassName="page-link"
+          breakLabel="..."
+          breakClassName="page-item"
+          breakLinkClassName="page-link"
+          containerClassName="pagination"
+          activeClassName="active"
+          renderOnZeroPageCount={null}
+          forcePage={currentPage - 1}
+        />
+      </div>
       {listUsers && listUsers.length === 0 && (
         <div className="not-found-data">Not found data</div>
       )}
@@ -65,4 +106,4 @@ const TableUser = ({ listUsers, handleClickBtnUpdate, handleClickBtnView, handle
   );
 };
 
-export default TableUser;
+export default TableUserPaginate;

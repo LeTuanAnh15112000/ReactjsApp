@@ -3,10 +3,19 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { FcPlus } from "react-icons/fc";
 import { toast } from "react-toastify";
-import { postCreateNewUser } from "../../../service/apiService";
+import { putUpdateUser } from "../../../service/apiService";
 import _ from "lodash";
 
-function ModalUpdateUser({ show, setShow, dataUpdate }) {
+function ModalUpdateUser({
+  show,
+  setShow,
+  fetchListUses,
+  dataUpdate,
+  resetUpdateData,
+  fetchListUsesWithPaginate,
+  currentPage,
+  setCurrentPage,
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -17,9 +26,10 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
   useEffect(() => {
     if (_.isEmpty(!dataUpdate)) {
       setEmail(dataUpdate.email);
+      setPassword(dataUpdate.password);
       setUsername(dataUpdate.username);
       setRole(dataUpdate.role);
-      if(dataUpdate.image) {
+      if (dataUpdate.image) {
         setPreviewImage(`data:image/jpeg;base64,${dataUpdate.image}`);
       }
     }
@@ -33,6 +43,7 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
     setImage("");
     setPreviewImage("");
     setShow(false);
+    resetUpdateData();
   };
 
   const handleUpload = (e) => {
@@ -45,33 +56,14 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
     }
   };
 
-  const validateEmail = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
-
   const handelSubmitCreateUser = async () => {
-    // validate
-    const isValidEmail = validateEmail(email);
-    if (!isValidEmail) {
-      toast.error("Invalid Email");
-      return;
-    }
-
-    if (!password) {
-      toast.error("Invalid Password");
-      return;
-    }
-
     //submit
-    let data = await postCreateNewUser(email, password, username, role, image);
+    let data = await putUpdateUser(dataUpdate.id, username, role, image);
     if (data && data.EC === 0) {
       toast.success(data.EM);
       handleClose();
-      await dataUpdate();
+      // await fetchListUses();
+      await fetchListUsesWithPaginate(currentPage);
     }
 
     if (data && data.EC !== 0) {
@@ -98,11 +90,8 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
               <input
                 type="email"
                 className="form-control"
-                value={email}
+                value={email || ""}
                 disabled
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
               />
             </div>
             <div className="col-md-6">
@@ -110,11 +99,8 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
               <input
                 type="password"
                 className="form-control"
-                value={password}
+                value={password || ""}
                 disabled
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
               />
             </div>
             <div className="col-md-6">
@@ -122,7 +108,7 @@ function ModalUpdateUser({ show, setShow, dataUpdate }) {
               <input
                 type="text"
                 className="form-control"
-                value={username}
+                value={username || ""}
                 onChange={(e) => {
                   setUsername(e.target.value);
                 }}
