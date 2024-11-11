@@ -1,21 +1,32 @@
 import { useState } from "react";
 import "./Login.scss";
 import { useNavigate } from "react-router-dom";
+import { postLogin } from "../../service/apiService";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    alert(123);
+  const handleLogin = async () => {
+    let data = await postLogin(email, password);
+    
+    if(data && +data.EC === 0) {
+      toast.success(data.EM);
+      navigate("/")
+    }
+    if(data && +data.EC !== 0) {
+
+      toast.error(data.EM);
+    }
   };
 
   return (
     <div className="login_inner">
       <div className="login_header">
         <span>Don't have an account yet?</span>
-        <button className="btn_signup">Sign up</button>
+        <button className="btn_signup" onClick={() => {navigate('/register')}}>Sign up</button>
       </div>
       <div className="login_group">
         <div className="login_logo">AnthLe</div>
