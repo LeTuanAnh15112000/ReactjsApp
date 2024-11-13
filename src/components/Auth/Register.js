@@ -1,16 +1,16 @@
 import { useState } from "react";
-import "./Register.scss";
+import "./Auth.scss";
 import { useNavigate } from "react-router-dom";
 import { postRegister } from "../../service/apiService";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 const Register = (props) => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("abc");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
 
   const validateEmail = (email) => {
     return String(email)
@@ -50,7 +50,14 @@ const Register = (props) => {
     <div className="login_inner">
       <div className="login_header">
         <span>Don't have an account yet?</span>
-        <button className="btn_signup" onClick={() => {navigate('/login')}}>Sign in</button>
+        <button
+          className="btn_signup"
+          onClick={() => {
+            navigate("/login");
+          }}
+        >
+          Sign in
+        </button>
       </div>
       <div className="login_group">
         <div className="login_logo">AnthLe</div>
@@ -82,7 +89,7 @@ const Register = (props) => {
               {showPassword === true ? <FaEye /> : <FaEyeSlash />}
             </span>
           </div>
-          <div className="form_group">
+          <div className="form_group mb55">
             <label>Username</label>
             <input
               type="text"
@@ -95,7 +102,14 @@ const Register = (props) => {
             <button className="btn-submit" onClick={() => handleRegister()}>
               Register
             </button>
-            <span className="go_back" onClick={() => {navigate("/")}}>&#8592; Go to Homepage</span>
+            <span
+              className="go_back"
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              &#8592; Go to Homepage
+            </span>
           </div>
         </div>
       </div>

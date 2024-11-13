@@ -7,10 +7,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#basic-nav-dropdown {
-  display: none !important;
-}
-
 @media (min-width: 1400px) {
   .container,
   .container-lg,
@@ -18,7 +14,7 @@ body {
   .container-sm,
   .container-xl,
   .container-xxl {
-    max-width: 96% !important;
+    max-width: 92% !important;
   }
 }
 
