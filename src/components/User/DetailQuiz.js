@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { getDataQuiz } from "../../service/apiService";
+import { getDataQuiz, postSubmitQuiz } from "../../service/apiService";
 import _ from "lodash";
 import "./DetailQuiz.scss";
 import Question from "./Question";
+import ModalResult from "./ModalResult";
 const DetailQuiz = () => {
   const params = useParams();
   const quizId = params.id;
   const location = useLocation();
   const [dataQuiz, setDataQuiz] = useState([]);
   const [index, setIndex] = useState(0);
+  const [isShowModalResult, setIsShowModalResult] = useState(false)
+  const [dataModelResult, setDataModelResult] = useState({})
 
   useEffect(() => {
     fetchQuestions();
@@ -55,12 +58,11 @@ const DetailQuiz = () => {
 
   const handleCheckbox = (answerId, questionId) => {
     let dataQuizClone = _.cloneDeep(dataQuiz);
-    console.log(dataQuizClone);
-    
-    let question = dataQuizClone.find((item) => 
-      +item.questionId === +questionId
-    );    
-    
+
+    let question = dataQuizClone.find(
+      (item) => +item.questionId === +questionId
+    );
+
     if (question && question.answers) {
       let result = question.answers.map((item) => {
         if (+item.id === +answerId) {
@@ -81,34 +83,68 @@ const DetailQuiz = () => {
     }
   };
 
+  const handleFinish = async () => {
+    let result = { quizId: +quizId, answers: [] };
+    let answers = [];
+    if (dataQuiz && dataQuiz.length > 0) {
+      dataQuiz.forEach((question) => {
+        let questionId = question.questionId;
+        let userAnswerId = [];
+        question.answers.forEach((item => {
+          if(item.isSelected) {
+            userAnswerId.push(item.id)
+          }
+        }))
+        answers.push({
+          questionId: +questionId,
+          userAnswerId
+        })
+      })
+    }
+    result.answers = answers;
+
+    // post api
+
+    let res = await postSubmitQuiz(result);
+    console.log(res);
+    
+    if(res && res.EC === 0 ) {
+      setIsShowModalResult(true);
+      setDataModelResult({
+        countCorrect: res.DT.countCorrect,
+        countTotal: res.DT.countTotal,
+        quizData: res.DT.quizData
+      })
+    } else {
+      alert('Something wrong...')
+    }
+  };
+
   return (
-    <div className="detail-quiz-container">
-      <div className="left-content">
-        <div className="title">
-          Quiz {quizId}: {location?.state?.quizTitle}
+    <>
+      <div className="detail-quiz-container">
+        <div className="left-content">
+          <div className="title">
+            Quiz {quizId}: {location?.state?.quizTitle}
+          </div>
+          <hr />
+          <div className="q-content">
+            <Question
+              handleCheckbox={handleCheckbox}
+              index={index}
+              data={dataQuiz && dataQuiz.length > 0 ? dataQuiz[index] : []}
+            />
+          </div>
+          <div className="footer">
+            <button className="btn btn-secondary" onClick={handlePrev}>Prev</button>
+            <button className="btn btn-primary" onClick={handleNext}>Next</button>
+            <button className="btn btn-warning" onClick={handleFinish}>Finish</button>
+          </div>
         </div>
-        <hr />
-        <div className="q-content">
-          <Question
-            handleCheckbox={handleCheckbox}
-            index={index}
-            data={dataQuiz && dataQuiz.length > 0 ? dataQuiz[index] : []}
-          />
-        </div>
-        <div className="footer">
-          <button className="btn btn-secondary" onClick={handlePrev}>
-            Prev
-          </button>
-          <button className="btn btn-primary" onClick={handleNext}>
-            Next
-          </button>
-          <button className="btn btn-warning" onClick={handleNext}>
-            Finish
-          </button>
-        </div>
+        <div className="right-content">count down</div>
       </div>
-      <div className="right-content">count down</div>
-    </div>
+      <ModalResult show={isShowModalResult} setShow= {setIsShowModalResult} dataModelResult={dataModelResult} />
+    </>
   );
 };
 

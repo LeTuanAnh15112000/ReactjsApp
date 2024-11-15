@@ -7,15 +7,9 @@ const Question = (props) => {
   }
 
   const handleGetCheckbox = (event, answerId, questionId) => {
-    let isChecked = event.target.checked;
-    // console.log(answerId, questionId);
     handleCheckbox(answerId, questionId);
   }
 
-  // console.log(data);
-  // console.log(data.answers);
-  // console.log(data.answers);
-  
   return (
     <>
       <div className="q-image">

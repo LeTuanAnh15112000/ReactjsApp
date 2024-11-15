@@ -15,9 +15,32 @@
       height: 40px;
       display: flex;
       align-items: center;
-      margin-bottom: 50px;
     }
   }
+  .admin-main {
+    height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding-right: 8px;
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #dadada;
+      border-radius: 5px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  }
+}
+.sub_logo {
+  cursor: pointer;
 }
 
 .pro-sidebar .pro-menu > ul > .pro-sub-menu > .pro-inner-list-item {

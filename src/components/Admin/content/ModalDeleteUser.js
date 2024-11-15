@@ -7,6 +7,8 @@ const ModalDeleteUser = ({ show, setShow, dataDeleteUser, fetchListUses, fetchLi
   const handleClose = () => {
     setShow(false);
   }
+  console.log(dataDeleteUser);
+  
   const handleSubmitDeleteUser = async () => {
     let data = await deleteUser(dataDeleteUser.id)
     if (data && data.EC === 0) {
