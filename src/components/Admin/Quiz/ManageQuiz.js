@@ -27,7 +27,6 @@ const ManageQuiz = (props) => {
   const [dataDeleteQuiz, setDataDeleteQuiz] = useState('');
   const [modelUpdate, setModelUpdate] = useState(false);
   const [dataUpdateQuiz, setDataUpdateQuiz] = useState('');
-  const [ressetdataUpdateQuiz, setResetDataUpdateQuiz] = useState({});
 
   const handleChangeFile = (e) => {
     if (e.target && e.target.files && e.target.files[0]) {

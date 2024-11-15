@@ -17,10 +17,7 @@ const ModalResult = ({ show, setShow, dataModelResult}) => {
           <div>Total Correct answers: <b>{dataModelResult.countCorrect}</b></div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Show answers
-          </Button>
-          <Button variant="primary">
+          <Button variant="primary" onClick={handleClose}>
             Close
           </Button>
         </Modal.Footer>

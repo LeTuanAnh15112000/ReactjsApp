@@ -104,9 +104,7 @@ const DetailQuiz = () => {
     result.answers = answers;
 
     // post api
-
     let res = await postSubmitQuiz(result);
-    console.log(res);
     
     if(res && res.EC === 0 ) {
       setIsShowModalResult(true);

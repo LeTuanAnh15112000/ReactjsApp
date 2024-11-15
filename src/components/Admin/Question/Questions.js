@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import { BsPatchPlusFill } from "react-icons/bs";
 import { BsPatchMinusFill } from "react-icons/bs";
@@ -7,18 +7,25 @@ import { AiOutlineMinusCircle } from "react-icons/ai";
 import { AiFillPlusSquare } from "react-icons/ai";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
+import Lightbox from "react-awesome-lightbox";
+import {
+  getAllQuizForAdmin,
+  postCreateNewQuestionForQuiz,
+  postCreateNewAnswerForQuestion,
+} from "../../../service/apiService";
 import "./Questions.scss";
+import { toast } from "react-toastify";
 
 const Questions = () => {
-  const options = [
-    { value: "chocolate", label: "Chocolate" },
-    { value: "strawberry", label: "Strawberry" },
-    { value: "vanilla", label: "Vanilla" },
-  ];
-
+  const [isPreviewImage, setIsPreviewImage] = useState(false);
+  const [dataImagePreview, setDataImagePreview] = useState({
+    title: "",
+    url: "",
+  });
+  const [removeImageUrl, setRemoveImageUrl] = useState();
+  const [listQuiz, setListQuiz] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState({});
-
-  const [questions, setQuestions] = useState([
+  const initQuestions = [
     {
       id: uuidv4(),
       description: "",
@@ -32,7 +39,32 @@ const Questions = () => {
         },
       ],
     },
-  ]);
+  ]
+
+  const [questions, setQuestions] = useState(initQuestions);
+
+  useEffect(() => {
+    fetchQuiz();
+  }, []);
+
+  const fetchQuiz = async () => {
+    let res = await getAllQuizForAdmin();
+    if (res && res.EC === 0) {
+      let newQuiz = res.DT.map((item) => {
+        return {
+          value: item.id,
+          label: `${item.id}-${item.description}`,
+        };
+      });
+      setListQuiz(newQuiz);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(dataImagePreview.url);
+    };
+  }, [dataImagePreview.url, removeImageUrl]);
 
   const handleAddRemoveQuestion = (type, id) => {
     if (type === "ADD") {
@@ -102,6 +134,7 @@ const Questions = () => {
       questionClone[index].imageName = event.target.files[0].name;
     }
     setQuestions(questionClone);
+    setRemoveImageUrl(questionClone[index].imageFile);
   };
 
   const handleAnswerQuestion = (type, answerId, questionId, value) => {
@@ -125,9 +158,70 @@ const Questions = () => {
     setQuestions(questionClone);
   };
 
-  const handleSubmitQuestionForQuiz = () => {
-    console.log('question', questions);
-  }
+  const handlePreviewImage = (questionId) => {
+    let questionClone = _.cloneDeep(questions);
+    let index = questionClone.findIndex((item) => item.id === questionId);
+    if (index > -1) {
+      setDataImagePreview({
+        title: questionClone[index].imageName,
+        url: URL.createObjectURL(questionClone[index].imageFile),
+      });
+      setIsPreviewImage(true);
+    }
+  };
+
+  const handleSubmitQuestionForQuiz = async () => {
+    //validate
+    if(_.isEmpty(selectedQuiz)) {
+      toast.error("Please choose a Quiz!");
+      return;
+    }
+
+    let isValidQuestion = true, indexQ = 0;
+    for(let i=0; i< questions.length; i++) {
+      if(!questions[i].description) {
+        indexQ = i;
+        isValidQuestion = false;
+        break;
+      }
+    }
+    if(isValidQuestion === false) {
+      toast.error(`Not empty description for Question ${indexQ + 1}`)
+      return;
+    }
+
+    let isValidAnswers = true;
+    let indexQuestion = 0, indexAnswer = 0
+    for(let i=0; i< questions.length; i++) {
+      for(let j = 0; j < questions[i].answers.length; j++) {
+        if(!questions[i].answers[j].description) {
+          isValidAnswers = false;
+          indexAnswer = j;
+          break;
+        }
+      }
+      indexQuestion = i;
+      if(isValidAnswers === false) {
+        break
+      }
+    }
+
+    if(isValidAnswers === false) {
+      toast.error(`Not empty Answer ${indexAnswer + 1} at Question ${indexQuestion + 1}`)
+      return;
+    }
+
+    //handle submit
+    for(const question of questions) {
+      const resQuestion = await postCreateNewQuestionForQuiz(+selectedQuiz.value, question.description, question.imageFile);
+      for(const answer of question.answers) {
+        await postCreateNewAnswerForQuestion(answer.description, answer.isCorrect, resQuestion.DT.id);
+      }
+    }
+
+    toast.success('Create question and answer succeed!')
+    setQuestions(initQuestions);
+  };
 
   return (
     <div className="questions-container">
@@ -139,7 +233,7 @@ const Questions = () => {
           <Select
             defaultValue={selectedQuiz}
             onChange={setSelectedQuiz}
-            options={options}
+            options={listQuiz}
           />
         </div>
         <div className="mt-5 mb-2">Add questions:</div>
@@ -182,9 +276,18 @@ const Questions = () => {
                         }
                       />
                       <span>
-                        {question.imageName
-                          ? question.imageName
-                          : "0 file is uploaded"}
+                        {question.imageName ? (
+                          <span
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              handlePreviewImage(question.id);
+                            }}
+                          >
+                            {question.imageName}
+                          </span>
+                        ) : (
+                          "0 file is uploaded"
+                        )}
                       </span>
                     </div>
                     <div className="btn-add">
@@ -267,8 +370,20 @@ const Questions = () => {
             })}
           {questions && questions.length > 0 && (
             <div className="mt-3">
-              <button className="btn btn-warning" onClick={() => handleSubmitQuestionForQuiz()}>Save Questions</button>
+              <button
+                className="btn btn-warning"
+                onClick={() => handleSubmitQuestionForQuiz()}
+              >
+                Save Questions
+              </button>
             </div>
+          )}
+          {isPreviewImage === true && (
+            <Lightbox
+              image={dataImagePreview.url}
+              title={dataImagePreview.title}
+              onClose={() => setIsPreviewImage(false)}
+            ></Lightbox>
           )}
         </div>
       </div>
